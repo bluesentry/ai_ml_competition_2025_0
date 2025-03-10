@@ -41,30 +41,15 @@ resource "aws_iam_role_policy" "github_actions_workflow" {
         "Sid" : "ECRPushPermissions",
         "Effect" : "Allow",
         "Action" : [
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:InitiateLayerUpload",
-          "ecr:UploadLayerPart",
-          "ecr:CompleteLayerUpload",
-          "ecr:PutImage"
+          "ecr:*"
         ],
         "Resource" : "*"
-      }, 
-       {
+      },
+      {
         "Sid" : "EKSPermissions",
         "Effect" : "Allow",
         "Action" : [
-          "eks:CreateCluster",
-          "eks:DescribeCluster",
-          "eks:UpdateClusterConfig",
-          "eks:UpdateClusterVersion",
-          "eks:DeleteCluster",
-          "eks:ListClusters",
-          "eks:DescribeNodegroup",
-          "eks:CreateNodegroup",
-          "eks:UpdateNodegroupConfig",
-          "eks:UpdateNodegroupVersion",
-          "eks:DeleteNodegroup"
+          "eks:*"
         ],
         "Resource" : "*"
       },
@@ -72,35 +57,100 @@ resource "aws_iam_role_policy" "github_actions_workflow" {
         "Sid" : "Route53Permissions",
         "Effect" : "Allow",
         "Action" : [
-          "route53:ChangeResourceRecordSets",
-          "route53:ListResourceRecordSets",
-          "route53:GetHostedZone",
-          "route53:CreateHostedZone",
-          "route53:DeleteHostedZone",
-          "route53:ListHostedZones"
+          "route53:*"
         ],
         "Resource" : "*"
       },
-       {
+      {
         "Sid" : "LoadBalancerPermissions",
         "Effect" : "Allow",
         "Action" : [
-          "elasticloadbalancing:CreateLoadBalancer",
-          "elasticloadbalancing:DescribeLoadBalancers",
-          "elasticloadbalancing:DeleteLoadBalancer",
-          "elasticloadbalancing:ModifyLoadBalancerAttributes",
-          "elasticloadbalancing:CreateTargetGroup",
-          "elasticloadbalancing:DescribeTargetGroups",
-          "elasticloadbalancing:DeleteTargetGroup",
-          "elasticloadbalancing:RegisterTargets",
-          "elasticloadbalancing:DeregisterTargets",
-          "elasticloadbalancing:DescribeListeners",
-          "elasticloadbalancing:CreateListener",
-          "elasticloadbalancing:DeleteListener",
-          "elasticloadbalancing:ModifyListener"
+          "elasticloadbalancing:*"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "S3Permissions",
+        "Effect" : "Allow",
+        "Action" : [
+          "s3:*"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "ECRPermissions",
+        "Effect" : "Allow",
+        "Action" : [
+          "ecr:*"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "DynamoDBPermissions",
+        "Effect" : "Allow",
+        "Action" : [
+          "dynamodb:*"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "IAMPermissions",
+        "Effect" : "Allow",
+        "Action" : [
+          "iam:*"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "SSMPermissions",
+        "Effect" : "Allow",
+        "Action" : [
+          "ssm:*"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "ACMPermissions",
+        "Effect" : "Allow",
+        "Action" : [
+          "acm:*"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "EC2Permissions",
+        "Effect" : "Allow",
+        "Action" : [
+          "ec2:*"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "LogPermissions",
+        "Effect" : "Allow",
+        "Action" : [
+          "logs:*"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "KmsPermissions",
+        "Effect" : "Allow",
+        "Action" : [
+          "kms:*"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "RDSPermissions",
+        "Effect" : "Allow",
+        "Action" : [
+          "rds:*"
         ],
         "Resource" : "*"
       }
+
+
     ]
   })
 }
