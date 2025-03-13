@@ -12,9 +12,15 @@ on:
         - apply
         - destroy
         required: true
-  # push:
-  #   branches:
-  #     - main
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+
+permissions:
+  id-token: write  # Required for OIDC authentication with AWS
+  contents: read
 
 jobs:
   deploy:
@@ -26,67 +32,43 @@ jobs:
         working-directory: terraform
 
     env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      ROLE_NAME: ${{ secrets.IAM_ROLE_FOR_GITHUB_ACTIONS }}
+      AWS_REGION: us-east-1
+      AWS_ACCOUNT_ID: 704855531002
+      ROLE_NAME: BlueSentry
       
     steps:
-    # - name: List repo structure
-    #   run: ls -R
-    #   shell: bash
     
-    # - name: Debug Secrets and Variables
-    #   run: |
-    #     echo "AWS_REGION: ${{ env.AWS_REGION }}"
-    #     echo "AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}"
-    #     echo "IAM_ROLE_FOR_GITHUB_ACTIONS: ${{ secrets.IAM_ROLE_FOR_GITHUB_ACTIONS }}"
-    #     echo "ROLE_NAME (from env): $ROLE_NAME"
-    #   shell: bash
-
     - name: Checkout repo
       uses: actions/checkout@v4
-
-    - name: Configure AWS Credentials via OIDC
+  
+    - name: Configure AWS Credentials  via OIDC
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.ROLE_NAME}}
+        role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.ROLE_NAME }}
         aws-region: ${{ env.AWS_REGION }}
-  
+
+    # - name: List files in the current directory
+    #   run: ls -la
+      
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.11.0
 
     - name: Terraform Init
-      uses: hashicorp/terraform-github-actions@master
-      with:
-        tf_actions_version: 0.14.3
-        tf_actions_subcommand: 'init'
-        tf_actions_working_dir: '.'
-        tf_actions_comment: true
+      run: terraform init 
+      working-directory: terraform
 
-    - name: Terraform plan
-      uses: hashicorp/terraform-github-actions@master
-      with:
-        tf_actions_version: 0.14.3
-        tf_actions_subcommand: 'plan'
-        tf_actions_working_dir: '.'
-        tf_actions_comment: true
+    - name: Terraform Plan
+      run: terraform plan  
+      working-directory: terraform
 
-    - name: Terraform apply
-      if: ${{ github.event.inputs.terraform_action == 'apply' }}
-      uses: hashicorp/terraform-github-actions@master
-      with:
-        tf_actions_version: 0.14.3
-        tf_actions_subcommand: ${{ github.event.inputs.terraform_action }}
-        tf_actions_working_dir: '.'
-        tf_actions_comment: true
-        args: '-auto-approve'
-    
-    - name: Terraform destroy
-      if: ${{ github.event.inputs.terraform_action == 'destroy' }}
-      uses: hashicorp/terraform-github-actions@master
-      with:
-        tf_actions_version: 0.14.3
-        tf_actions_subcommand: ${{ github.event.inputs.terraform_action }}
-        tf_actions_working_dir: '.'
-        tf_actions_comment: true
-        args: '-auto-approve'
+    # - name: Terraform Apply
+    #   if: ${{ github.event.inputs.terraform_action == 'apply' }}
+    #   run: terraform apply -auto-approve
+    #   working-directory: terraform
+
+    # - name: Terraform destroy
+    #   if: ${{ github.event.inputs.terraform_action == 'destroy' }}
+    #   run: terraform destroy -auto-approve
+    #   working-directory: terraform
