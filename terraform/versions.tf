@@ -4,7 +4,7 @@ provider "aws" {
   default_tags {
     tags = {
       Project     = "ai_ml_competition_2025_0"
-      Owners      = "Noor"
+      Owners      = "First Order"
       Provisioner = "Terraform"
     }
   }

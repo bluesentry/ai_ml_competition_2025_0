@@ -1,0 +1,61 @@
+name: Deploy Applications
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ACCOUNT_ID: 704855531002
+  ROLE_NAME: BlueSentry
+  CLUSTER_NAME: first-order-ai-ml
+
+jobs:
+  deploy:
+    name: Deploy to EKS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.ROLE_NAME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        id: install
+        
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region $AWS_REGION \
+            --name $CLUSTER_NAME
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.13.3
+
+    #   - name: Add ArgoCD Helm repo
+    #     run: |
+    #       helm repo add argo https://argoproj.github.io/argo-helm
+    #       helm repo update
+
+    #   - name: Install ArgoCD via Helm
+    #     run: |
+    #       helm upgrade --install argo-cd argo/argo-cd \
+    #         --namespace argocd \
+    #         --create-namespace \
+    #         --set server.extraArgs={--insecure}
+
+      - name: Deploy ArgoCD Applications
+        working-directory: k8s/master
+        run: |
+          helm template . | kubectl apply -f -

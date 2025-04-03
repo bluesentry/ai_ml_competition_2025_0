@@ -22,7 +22,7 @@ game:
       nodePort: 80
 
   ingress:
-    host: game-ai-ml-competition-2025-0.brewsentry.com
+    host: first-order-ai.brewsentry.com
     
   resources:
     requests:

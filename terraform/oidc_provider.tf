@@ -22,7 +22,7 @@ resource "aws_iam_role" "github_actions_ai_ml_role" {
           },
           "StringLike" : {
             # Adjust the repository identifier to match your GitHub org and repo.
-            "token.actions.githubusercontent.com:sub" : "repo:bluesentry/ai_ml_competition_2025_0:*"
+            "token.actions.githubusercontent.com:sub" : "repo:bluesentry/first-order-season-1:*"
           }
         }
       }
@@ -179,4 +179,56 @@ resource "aws_iam_role_policy" "github_actions_workflow" {
 
     ]
   })
+}
+
+
+# Fluent Bit IRSA Role
+resource "aws_iam_role" "fluentbit" {
+  name = "eks-fluentbit-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Federated = module.eks.oidc_provider_arn
+        },
+        Action = "sts:AssumeRoleWithWebIdentity",
+        Condition = {
+          StringEquals = {
+            "${replace(module.eks.oidc_provider_arn, "arn:aws:iam::${data.aws_caller_identity.this.account_id}:oidc-provider/", "")}:sub" = "system:serviceaccount:logging:fluentbit"
+          }
+        }
+      }
+    ]
+  })
+}
+
+
+resource "aws_iam_policy" "fluentbit_s3_write" {
+  name = "FluentBitS3Policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid : "AllowS3Put",
+        Effect : "Allow",
+        Action : ["s3:PutObject", "s3:PutObjectAcl"],
+        Resource : "arn:aws:s3:::first-order-application-logs/*"
+      },
+      {
+        Sid : "AllowKMSDecrypt",
+        Effect : "Allow",
+        Action : ["kms:GenerateDataKey", "kms:Encrypt", "kms:Decrypt"],
+        Resource : data.aws_kms_key.aws_s3.arn
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "fluentbit_attach_s3_write" {
+  role       = aws_iam_role.fluentbit.name
+  policy_arn = aws_iam_policy.fluentbit_s3_write.arn
 }

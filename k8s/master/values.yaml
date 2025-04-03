@@ -2,8 +2,8 @@ appEnvironments:
   dev:
     argoHostname: argocd-ai-ml-competition-2025-0.brewsentry.com
     awsAccountNumber: '704855531002'
-    clusterName: ai-ml-competition-2025-0
-    environment: ai-ml-competition-2025-0
+    clusterName: first_order_ai_ml
+    environment: first_order_ai_ml
     publicDomain: brewsentry.com
     publicDomainId: Z02805682TXYB0368277R
-    repoUrl: https://github.com/bluesentry/ai_ml_competition_2025_0.git
+    repoUrl: https://github.com/bluesentry/first-order-season-1.git

@@ -1,0 +1,82 @@
+{{- range $environment, $values := .Values.appEnvironments }}
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: logging
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  description: "Project for logging components"
+  destinations:
+    - namespace: '*'
+      server: https://kubernetes.default.svc
+  sourceRepos:
+    - https://fluent.github.io/helm-charts
+    - {{ $values.repoUrl }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fluent-bit
+  namespace: argocd
+spec:
+  destination:
+    namespace: logging
+    server: https://kubernetes.default.svc
+  project: logging
+  source:
+    repoURL: https://fluent.github.io/helm-charts
+    chart: fluent-bit
+    targetRevision: 0.48.9
+    helm:
+      values: |
+        serviceAccount:
+          create: true
+          name: fluentbit
+          annotations:
+            eks.amazonaws.com/role-arn: arn:aws:iam::704855531002:role/eks-fluentbit-role
+
+        config:
+          inputs: |
+            [INPUT]
+                Name tail
+                Path /var/log/containers/*.log
+                Parser docker
+                Tag kube.*
+                Mem_Buf_Limit 5MB
+                Skip_Long_Lines On
+
+          filters: |
+            [FILTER]
+                Name kubernetes
+                Match kube.*
+                Merge_Log On
+                Keep_Log Off
+                K8S-Logging.Parser On
+                K8S-Logging.Exclude On
+
+          outputs: |
+            [OUTPUT]
+                Name s3
+                Match *
+                Bucket first-order-application-logs
+                Region us-east-1
+                compression gzip
+                total_file_size 5M
+                upload_timeout 5s
+                store_dir /var/log/fluentbit
+                s3_key_format /fluent-bit-logs/%Y/%m/%d/%H/%M/%S-${HOSTNAME}.json.gz
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 2
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+{{- end }}
